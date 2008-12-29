@@ -4,6 +4,9 @@ module Camptweet
     attr_accessor :twitter_users
     attr_accessor :twitter_search_terms
     attr_accessor :feed_urls
+    attr_accessor :github_repos
+    attr_accessor :github_user
+    attr_accessor :github_token
     attr_accessor :campfire_subdomain
     attr_accessor :campfire_use_ssl    
     attr_accessor :campfire_room
@@ -17,6 +20,7 @@ module Camptweet
       yield self if block_given?
       init_log
       add_twitter_search_urls_to_feed_urls
+      add_github_comment_urls_to_feed_urls
       connect_to_twitter
       connect_to_campfire
       login_to_campfire
@@ -88,6 +92,10 @@ module Camptweet
     
     def feed_urls
       @feed_urls ||= []
+    end
+
+    def github_repos
+      @github_repos ||= []
     end
     
     private
@@ -209,6 +217,17 @@ module Camptweet
       end
     end
     
+    def add_github_comment_urls_to_feed_urls
+      github_repos.each do |github_repo|
+        
+        if github_user && github_token
+          feed_urls << "https://github.com/#{github_repo}/comments.atom?login=#{github_user}&token=#{github_token}"
+        else
+          feed_urls << "http://github.com/#{github_repo}/comments.atom"
+        end
+      end
+    end
+
     # Twitter throttles even unauthenticated API requests to 100/hr
     def min_unthrottled_interval
       3600 / (100 / twitter_users.size)
